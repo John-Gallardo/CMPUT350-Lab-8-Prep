@@ -1,0 +1,44 @@
+a. if top left = (0, 0) and bottom right = (800, 600), then center of screen = (400, 300)
+a rectangle of width and height exactly half the screen dimensions is also (400, 300).
+
+if we want it centered on the screen in screenspace coordinates:
+the width of the rectangle goes from  [200, 600].
+the height of the rectangle goes from [150, 450].
+
+the top left corner would be     (200, 150)
+the bottom left corner would be  (200, 450)
+the top right corner would be    (600, 150)
+the bottom right corner would be (600, 450)
+
+for the top-left half of the quad it would be (top right, top left, bottom left) for counterclockwise order
+-> top left triangle has vertices ((600, 150), (200, 150), (200, 450))
+
+for the bottom-right half of the quad it would be (bottom left, bottom right, top right) for counterclockwise order
+-> bottom right triangle has vertices ((200, 450), (600, 450), (600, 150))
+
+b. the duplicate vertices are the top-right and bottom-left vertices
+if we assume the vertex buffer is [(200, 150), (200, 450), (600, 150), (600, 450)] (same order I used in a)
+you could create an index buffer with 6 values (like OpenGL's element buffer object/Vulkan's index buffer) where every 3 set of indices corresponds to a vertex in the vertex buffer.
+in this case the index buffer would be (assume 0-indexed):
+[2, 0, 1, 1, 3, 2]
+
+in this case the vertex buffer would be 8 + 8 + 8 + 8 = 32 bytes
+the index buffer would be 4 + 4 + 4 + 4 + 4 + 4 = 24 bytes
+-> 32 + 24 = 56 bytes
+
+in (a) it would be 8 + 8 + 8 + 8 + 8 + 8 = 48 bytes
+
+in this case the manually specifying every vertex approach wins but in cases where there are way more repeated vertices I think the vertex buffer + index buffer approach should win
+
+the vertices are storing screenspace coordinates which are ints but I assume "Also consider if we used doubles (8 bytes) instead of floats" is talking about them using floats, and then switching to doubles?
+if so, the vertex buffer + index buffer approach would be:
+vertex buffer = 16 + 16 + 16 + 16 = 64 bytes
+index buffer = 4 + 4 + 4 + 4 + 4 + 4 = 24 bytes
+-> 64 + 24 = 88 bytes used
+
+in (a) it would be 16 + 16 + 16 + 16 + 16 + 16 = 96 bytes used.
+
+in this case vertex buffer + index buffer approach already wins. the gap should get bigger as there are more repeated vertices
+
+c. I think you just 'normalize' screen coordinates to the range [0, 1].
+-> coordinates = [(500 / 800), (301 / 600)] = [0.625, 0.502]
