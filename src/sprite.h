@@ -5,10 +5,6 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 
-// used for coordinate transformations
-constexpr int g_windowWidth{256};
-constexpr int g_windowHeight{256};
-
 class Sprite {  // could derive from sf::Drawable if you're willing to pay for a vptr, but not
                 // necessary.
 public:
@@ -16,28 +12,35 @@ public:
     // also we create vertex array: primitive used is triangles and we have 6 vertices
     Sprite(const sf::Texture& texture)
     : mTexture{&texture}, mVertexArray{sf::PrimitiveType::Triangles, 6} {
+        // default: scale is 1 to 1, no offset
+        mTransform = BasicTransform();
+        mOrigin = sf::Vector2f{0.0f, 0.0f};  // origin by default?
+
         // NOTE: I assume minimum is always (0, 0) if not given
         mMinPointTex = sf::Vector2f(0.0f, 0.0f);
 
-        // NOTE: need to change if window size changes since getSize() returns the size of the texture in PIXELS.
+        // screenspace pixel coordinates transformed from ints to floats
         sf::Vector2u textureSize{texture.getSize()};
-        mMaxPointTex = sf::Vector2f(static_cast<float>(textureSize.x) / g_windowWidth, static_cast<float>(textureSize.y) / g_windowHeight);
+        mMaxPointTex = sf::Vector2f(static_cast<float>(textureSize.x), static_cast<float>(textureSize.y));
 
-        // NOTE: mVertexArray by default covers the entire screen in screenspace coordinates I assume?
+        // NOTE: vertex position is [0, 0] to [mMaxPointTex.x, mMaxPointTex.y] by default
         for (int i{0}; i < 6; i++) {
-            auto vertex{DEFAULT_VERTICES[i]};
-            // TODO: need to set mVertexArray
+            sf::Vector2f vertex{DEFAULT_VERTICES[i].x * mMaxPointTex.x, DEFAULT_VERTICES[i].y * mMaxPointTex.y};
+            mVertexArray[i].position = vertex;
         }
-
-
-        // TODO: probably need to set mOrigin and mTransform too
     }
 
     // sets mTexture, mMinPointText, mMaxPointTex
     Sprite(const sf::Texture& texture, const sf::Vector2f& texMinPoint,
            const sf::Vector2f& texMaxPoint) 
     : mTexture{&texture}, mMinPointTex{texMinPoint}, mMaxPointTex{texMaxPoint} {
-        // TODO: incomplete! probably need to set rest of member variables
+        // same code as above constructor w/o mMinPointTex and mMaxPointTex manually calculated
+        mTransform = BasicTransform();
+        mOrigin = sf::Vector2f{0.0f, 0.0f};
+        for (int i{0}; i < 6; i++) {
+            sf::Vector2f vertex{DEFAULT_VERTICES[i].x * mMaxPointTex.x, DEFAULT_VERTICES[i].y * mMaxPointTex.y};
+            mVertexArray[i].position = vertex;
+        }
     }
 
     // draw onto render target with our vertex array with the given target and state
@@ -76,7 +79,11 @@ private:
             return; 
         }
 
-        // TODO: I guess just needs to set mVertexArray? can't set the others since function is marked const
+        // set just mVertexArray. can't set others since this function is const
+         for (int i{0}; i < 6; i++) {
+            sf::Vector2f vertex{DEFAULT_VERTICES[i].x * mMaxPointTex.x, DEFAULT_VERTICES[i].y * mMaxPointTex.y};
+            mVertexArray[i].position = vertex;
+        }
     }
 
     const sf::Texture* mTexture;
