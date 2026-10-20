@@ -4,6 +4,8 @@
 #include "basic_transform.h"
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
+#include <iostream>  // for print debugging
+#include <algorithm>  // for clamping min and max vertex position
 
 class Sprite {  // could derive from sf::Drawable if you're willing to pay for a vptr, but not
                 // necessary.
@@ -85,11 +87,22 @@ private:
         }
 
         // set just mVertexArray. can't set others since this function is const
-        // NOTE: vertex position is [0, 0] to [mMaxPointTex.x, mMaxPointTex.y] by default
+        // NOTE: vertex position has to be in the range [0, 0] to [128, 128] for proper rendering for this sword example
+        // in particular it's [0, 0] - [mMaxPointTex.x - mMinPointTex.x, mMaxPointTex.y - mMinPointTex.y]
+        sf::Vector2u textureSize{mTexture->getSize()};
+        float minX{0.0f}, minY{0.0f};
+        float maxX{mMaxPointTex.x - mMinPointTex.x}, maxY{mMaxPointTex.y - mMinPointTex.y};
         for (int i{0}; i < 6; i++) {
-            sf::Vector2f vertex{DEFAULT_VERTICES[i].x * mMaxPointTex.x, DEFAULT_VERTICES[i].y * mMaxPointTex.y};
-            mVertexArray[i].position = vertex;
-            mVertexArray[i].texCoords = vertex;
+            // works for correct position but don't know if this was the intended way to do it.
+            // I tested it by comparing printed vertex positions of texture vs texture2
+            sf::Vector2f position{};
+            position.x = std::clamp(DEFAULT_VERTICES[i].x * mMaxPointTex.x - mMinPointTex.x, minX, maxX);
+            position.y = std::clamp(DEFAULT_VERTICES[i].y * mMaxPointTex.y - mMinPointTex.y, minY, maxY);
+
+            sf::Vector2f texCoords{DEFAULT_VERTICES[i].x * mMaxPointTex.x, DEFAULT_VERTICES[i].y * mMaxPointTex.y};
+            mVertexArray[i].position = position;
+            mVertexArray[i].texCoords = texCoords;
+            std::cout << position << '\n';
         }
     }
 
