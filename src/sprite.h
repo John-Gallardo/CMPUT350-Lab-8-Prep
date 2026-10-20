@@ -89,7 +89,6 @@ private:
         // set just mVertexArray. can't set others since this function is const
         // NOTE: vertex position has to be in the range [0, 0] to [128, 128] for proper rendering for this sword example
         // in particular it's [0, 0] - [mMaxPointTex.x - mMinPointTex.x, mMaxPointTex.y - mMinPointTex.y]
-        sf::Vector2u textureSize{mTexture->getSize()};
         float minX{0.0f}, minY{0.0f};
         float maxX{mMaxPointTex.x - mMinPointTex.x}, maxY{mMaxPointTex.y - mMinPointTex.y};
         for (int i{0}; i < 6; i++) {
@@ -99,10 +98,13 @@ private:
             position.x = std::clamp(DEFAULT_VERTICES[i].x * mMaxPointTex.x - mMinPointTex.x, minX, maxX);
             position.y = std::clamp(DEFAULT_VERTICES[i].y * mMaxPointTex.y - mMinPointTex.y, minY, maxY);
 
-            sf::Vector2f texCoords{DEFAULT_VERTICES[i].x * mMaxPointTex.x, DEFAULT_VERTICES[i].y * mMaxPointTex.y};
+            // texCoords are in the range [mMinPointTex.x, mMinPointTex.y] - [mMaxPointTex.x, mMaxPointTex.y]
+            sf::Vector2f texCoords{};
+            // idea: we start with mMinPoint's coordinate values and optionally add mMaxPoint's coordinate values (depending on current default vertex). clamp so we don't go over
+            texCoords.x = std::clamp(mMinPointTex.x + DEFAULT_VERTICES[i].x * mMaxPointTex.x, mMinPointTex.x, mMaxPointTex.x);
+            texCoords.y = std::clamp(mMinPointTex.y + DEFAULT_VERTICES[i].y * mMaxPointTex.y, mMinPointTex.y, mMaxPointTex.y);
             mVertexArray[i].position = position;
             mVertexArray[i].texCoords = texCoords;
-            std::cout << position << '\n';
         }
     }
 
