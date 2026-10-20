@@ -40,11 +40,23 @@ public:
         for (int i{0}; i < 6; i++) {
             sf::Vector2f vertex{DEFAULT_VERTICES[i].x * mMaxPointTex.x, DEFAULT_VERTICES[i].y * mMaxPointTex.y};
             mVertexArray[i].position = vertex;
+            mVertexArray[i].texCoords = vertex;
         }
     }
 
     // draw onto render target with our vertex array with the given target and state
     void draw(sf::RenderTarget& target, sf::RenderStates states) const {
+        // reference: https://www.sfml-dev.org/tutorials/3.0/graphics/vertex-array/#texturing
+        // specifically, setting texture & transform of an sf::RenderStates
+        //NOTE: states.texture takes in a memory address & mTexture is already a pointer
+    
+        states.texture = mTexture;
+        // using constructor with 9 values, (each for each value of the 3x3 matrix)
+        states.transform = sf::Transform{
+            mTransform.scale.x, 0, mTransform.translation.x,
+            0, mTransform.scale.y, mTransform.translation.y,
+            0, 0, 1
+        };
         target.draw(mVertexArray, states);
     }
 
