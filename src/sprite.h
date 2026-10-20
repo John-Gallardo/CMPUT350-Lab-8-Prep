@@ -46,8 +46,8 @@ public:
         states.texture = mTexture;
         // using constructor with 9 values, (each for each value of the 3x3 matrix)
         states.transform = sf::Transform{
-            mTransform.scale.x, 0, mTransform.translation.x,
-            0, mTransform.scale.y, mTransform.translation.y,
+            mTransform.scale.x, 0, mTransform.translation.x + mOrigin.x,
+            0, mTransform.scale.y, mTransform.translation.y + mOrigin.y,
             0, 0, 1
         };
         target.draw(mVertexArray, states);
