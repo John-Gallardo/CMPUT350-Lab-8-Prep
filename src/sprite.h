@@ -23,25 +23,18 @@ public:
         sf::Vector2u textureSize{texture.getSize()};
         mMaxPointTex = sf::Vector2f(static_cast<float>(textureSize.x), static_cast<float>(textureSize.y));
 
-        // NOTE: vertex position is [0, 0] to [mMaxPointTex.x, mMaxPointTex.y] by default
-        for (int i{0}; i < 6; i++) {
-            sf::Vector2f vertex{DEFAULT_VERTICES[i].x * mMaxPointTex.x, DEFAULT_VERTICES[i].y * mMaxPointTex.y};
-            mVertexArray[i].position = vertex;
-        }
+        // set vertices
+        recomputeVertexArray();
     }
 
-    // sets mTexture, mMinPointText, mMaxPointTex
+    // sets mTexture, mMinPointText, mMaxPointTex, and create vertex array
     Sprite(const sf::Texture& texture, const sf::Vector2f& texMinPoint,
            const sf::Vector2f& texMaxPoint) 
-    : mTexture{&texture}, mMinPointTex{texMinPoint}, mMaxPointTex{texMaxPoint} {
+    : mTexture{&texture}, mMinPointTex{texMinPoint}, mMaxPointTex{texMaxPoint}, mVertexArray{sf::PrimitiveType::Triangles, 6} {
         // same code as above constructor w/o mMinPointTex and mMaxPointTex manually calculated
         mTransform = BasicTransform();
         mOrigin = sf::Vector2f{0.0f, 0.0f};
-        for (int i{0}; i < 6; i++) {
-            sf::Vector2f vertex{DEFAULT_VERTICES[i].x * mMaxPointTex.x, DEFAULT_VERTICES[i].y * mMaxPointTex.y};
-            mVertexArray[i].position = vertex;
-            mVertexArray[i].texCoords = vertex;
-        }
+        recomputeVertexArray();
     }
 
     // draw onto render target with our vertex array with the given target and state
@@ -92,9 +85,11 @@ private:
         }
 
         // set just mVertexArray. can't set others since this function is const
-         for (int i{0}; i < 6; i++) {
+        // NOTE: vertex position is [0, 0] to [mMaxPointTex.x, mMaxPointTex.y] by default
+        for (int i{0}; i < 6; i++) {
             sf::Vector2f vertex{DEFAULT_VERTICES[i].x * mMaxPointTex.x, DEFAULT_VERTICES[i].y * mMaxPointTex.y};
             mVertexArray[i].position = vertex;
+            mVertexArray[i].texCoords = vertex;
         }
     }
 
